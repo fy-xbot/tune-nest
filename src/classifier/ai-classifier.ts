@@ -29,11 +29,8 @@ const DIM_LABELS: Record<ClassifyDimension, string> = {
 
 const DIM_HINTS: Record<ClassifyDimension, Record<string, string>> = {
   mood: {
-    '激情': '力量感强、热血燃烧、强烈嘲讶或反叛，如《海阔天空》《Numb》',
-    '舒缓': '平静放松、节奏轻柔、无明显情绪波动，如《平凡之路》',
-    '悲伤': '忧伤、失去、遗憾、歌词含离别/思念/痛苦，如《起风了》《红豆》《Faded》',
-    '浪漫': '爱情甲蜜、温馨告白、幸福感，如《告白气球》《小幸运》',
-    '欢快': '轻快活泼、无忧无虑、节日/派对氛围，如《晴天》《Shape of You》',
+    '激情': '节奏强劲、能量高、适合运动/开车/健身，如《海阔天空》《Numb》《Shape of You》《晴天》《告白气球》',
+    '舒缓': '节奏轻柔、能量低、适合睡觉/放松/阅读，如《平凡之路》《起风了》《红豆》《Faded》',
   },
   genre: {
     '流行': '大众化旋律、朗朗上口、排行榜风格',
@@ -65,9 +62,9 @@ function buildSystemPrompt(selection: DimensionSelection, dimsToClassify: Classi
   const fields = dimsToClassify.map((dim) => `"${dim}": "..."`).join(', ')
 
   const examples = [
-    { id: 12345, name: '晴天 - 周杰伦 | 专辑:叶惠美', values: { mood: '欢快', language: '华语', genre: '流行', era: '00s', region: '华语' } },
-    { id: 67890, name: 'Faded - Alan Walker | 专辑:Different World', values: { mood: '悲伤', language: '英语', genre: '电子', era: '10s', region: '欧美' } },
-    { id: 11111, name: '告白气球 - 周杰伦 | 专辑:周杰伦的床边故事', values: { mood: '浪漫', language: '华语', genre: '流行', era: '10s', region: '华语' } },
+    { id: 12345, name: '晴天 - 周杰伦 | 专辑:叶惠美', values: { mood: '激情', language: '华语', genre: '流行', era: '00s', region: '华语' } },
+    { id: 67890, name: 'Faded - Alan Walker | 专辑:Different World', values: { mood: '舒缓', language: '英语', genre: '电子', era: '10s', region: '欧美' } },
+    { id: 11111, name: '海阔天空 - Beyond | 专辑:乐与怒', values: { mood: '激情', language: '粤语', genre: '摇滚', era: '90s', region: '华语' } },
   ]
   const exInput = examples.map((e) => `ID:${e.id} | ${e.name}`).join('\n')
   const exOutput = JSON.stringify(examples.map((e) => {
@@ -83,10 +80,10 @@ ${dimLines}
 
 规则：
 1. 只能从给定的可选值中选择，不要发明新类别
-2. 如果无法确定某个维度，设为 null
-3. 先在心里分析每首歌的特征，但只输出 JSON 结果
-4. 情绪判定优先级：歌词主题 > 整体氛围 > 节奏快慢。歌词内容表达失去/思念/遗憾就是悲伤，即使旋律轻柔
-5. 风格判定优先级：歌手代表风格 > 编曲元素。如歌手以 Rap 为主则归嘻哈，即使单曲有流行元素
+2. 情绪维度必须二选一（激情或舒缓），禁止返回 null。判断标准：节奏强劲/能量高/适合运动=激情，节奏轻柔/能量低/适合放松=舒缓
+3. 其他维度如无法确定可设为 null
+4. 先在心里分析每首歌的特征，但只输出 JSON 结果
+5. 风格判定优先级：歌手代表风格 > 编曲元素
 6. 纯音乐（无人声）的语种设为 null
 
 示例输入：
@@ -147,7 +144,7 @@ export async function classifyByAI(
     body: JSON.stringify({
       model: 'deepseek-chat',
       messages,
-      temperature: 0.2,
+      temperature: 0,
       max_tokens: maxTokens,
     }),
   })

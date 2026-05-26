@@ -8,6 +8,7 @@ import { CreateConfirm } from './pages/CreateConfirm'
 import { TopRecord } from './pages/TopRecord'
 import { Home } from './pages/Home'
 import type { Playlist, Song, DimensionSelection, ClassifyResult, CategoryGroup } from '@/types'
+import { DIMENSION_META } from '@/types'
 
 const CURRENT_VERSION = (() => {
   try { return chrome.runtime.getManifest().version } catch { return '0.1.0' }
@@ -35,7 +36,7 @@ export function PanelApp() {
     uid: null,
     selectedPlaylists: [],
     songs: [],
-    dimensionSelection: { mood: ['激情', '舒缓', '悲伤', '浪漫', '欢快'] },
+    dimensionSelection: { mood: [...DIMENSION_META.mood.categories] },
     results: [],
     grouped: [],
   })

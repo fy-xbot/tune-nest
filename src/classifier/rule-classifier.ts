@@ -6,14 +6,32 @@ const CJK_REGEX = /[\u4e00-\u9fff\u3400-\u4dbf]/
 const JAPANESE_REGEX = /[\u3040-\u309f\u30a0-\u30ff]/
 const KOREAN_REGEX = /[\uac00-\ud7af\u1100-\u11ff]/
 
-// ===== 情绪关键词 =====
+// ===== 情绪关键词（基础匹配） =====
 
 const MOOD_KEYWORDS: Record<string, string[]> = {
-  '激情': ['摇滚', 'rock', 'metal', 'punk', '嗨', '燃', '电子', 'EDM', 'dance', '热血', 'hip-hop', 'rap', '说唱'],
-  '舒缓': ['轻音乐', '钢琴', 'piano', '安静', '治愈', '催眠', '纯音乐', 'light', 'easy', 'ambient', 'new age', 'chill', '民谣', 'folk', '小清新'],
-  '悲伤': ['伤感', '失恋', '离别', '思念', '孤独', 'sad', 'blue', 'melancholy', '难过'],
-  '浪漫': ['爱情', '甜蜜', '情歌', 'love', 'romantic', '告白', '恋爱'],
-  '欢快': ['快乐', '开心', '派对', 'party', 'happy', 'fun', '欢乐', '活力', 'pop'],
+  '激情': ['摇滚', 'rock', 'metal', 'punk', '嗨', '燃', '电子', 'EDM', 'dance', '热血', 'hip-hop', 'rap', '说唱', 'hard', 'heavy', '派对', 'party', '活力', 'bass', 'drop', 'remix'],
+  '舒缓': ['轻音乐', '钢琴', 'piano', '安静', '治愈', '催眠', '纯音乐', 'light', 'easy', 'ambient', 'new age', 'chill', '小清新', 'lofi', 'lo-fi', '伤感', '情歌', 'ballad', 'slow', '慢', '思念', 'acoustic'],
+}
+
+// ===== 情绪标签关键词（匹配网易云标签） =====
+
+const MOOD_TAG_KEYWORDS: Record<string, string[]> = {
+  '激情': ['激情', '热血', '兴奋', '嗨', '燃', '运动', '健身', '派对', '欢快', '快乐', '活力', '阳光', '开心'],
+  '舒缓': ['安静', '舒缓', '放松', '治愈', '助眠', '冥想', '轻松', '清新', '伤感', '悲伤', '忧郁', '思念', '浪漫', '甜蜜', '孤独'],
+}
+
+// ===== 风格 → 情绪反推（降级策略） =====
+
+const GENRE_TO_MOOD: Record<string, string> = {
+  '摇滚': '激情',
+  '金属': '激情',
+  '嘻哈': '激情',
+  '电子': '激情',
+  '古典': '舒缓',
+  '爵士': '舒缓',
+  '民谣': '舒缓',
+  '国风': '舒缓',
+  'R&B': '舒缓',
 }
 
 // ===== 风格关键词 =====
@@ -88,15 +106,41 @@ function matchKeywords(
   return undefined
 }
 
+// ===== 情绪分类（三级降级） =====
+
+function classifyMood(fullText: string, tags: string[], genre?: string): string | undefined {
+  // Level 1: 关键词直接匹配
+  const byKeyword = matchKeywords(fullText, MOOD_KEYWORDS)
+  if (byKeyword) return byKeyword
+
+  // Level 2: 网易云标签匹配
+  if (tags.length > 0) {
+    const tagText = tags.join(' ').toLowerCase()
+    for (const [mood, keywords] of Object.entries(MOOD_TAG_KEYWORDS)) {
+      for (const kw of keywords) {
+        if (tagText.includes(kw)) return mood
+      }
+    }
+  }
+
+  // Level 3: 风格反推情绪
+  if (genre && GENRE_TO_MOOD[genre]) {
+    return GENRE_TO_MOOD[genre]
+  }
+
+  return undefined
+}
+
 // ===== 主分类函数 =====
 
 export function classifyByRules(song: Song): ClassifyResult {
-  const tagText = (song.tags || []).join(' ')
+  const tags = song.tags || []
+  const tagText = tags.join(' ')
   const fullText = `${song.name} ${song.artists.map((a) => a.name).join(' ')} ${song.album.name} ${tagText}`
 
   const { language, region } = classifyLanguage(song)
-  const mood = matchKeywords(fullText, MOOD_KEYWORDS)
   const genre = matchKeywords(fullText, GENRE_KEYWORDS)
+  const mood = classifyMood(fullText, tags, genre)
   const era = classifyEra(song.album.publishTime)
 
   return {

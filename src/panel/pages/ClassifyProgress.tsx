@@ -28,12 +28,9 @@ export function ClassifyProgress({ songs, dimensionSelection, onComplete }: Prop
 
   const runClassification = async () => {
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-      const tabId = tab?.id
-
       const res: ExtensionResponse = await chrome.runtime.sendMessage({
         action: 'CLASSIFY_SONGS',
-        data: { songs, dimensionSelection, tabId },
+        data: { songs, dimensionSelection },
       })
 
       if (res.success && res.data) {

@@ -11,15 +11,15 @@ import {
 import { classifySongs, groupByDimension } from '@/classifier'
 
 chrome.runtime.onMessage.addListener(
-  (message: ExtensionMessage, _sender, sendResponse: (r: ExtensionResponse) => void) => {
-    handleMessage(message)
+  (message: ExtensionMessage, sender, sendResponse: (r: ExtensionResponse) => void) => {
+    handleMessage(message, sender)
       .then((data) => sendResponse({ success: true, data }))
       .catch((err) => sendResponse({ success: false, error: err.message }))
     return true // keep port open for async response
   }
 )
 
-async function handleMessage(message: ExtensionMessage): Promise<unknown> {
+async function handleMessage(message: ExtensionMessage, sender?: chrome.runtime.MessageSender): Promise<unknown> {
   switch (message.action) {
     case 'GET_LOGIN_STATUS':
       return getLoginStatus()
@@ -51,11 +51,11 @@ async function handleMessage(message: ExtensionMessage): Promise<unknown> {
     }
 
     case 'CLASSIFY_SONGS': {
-      const { songs, dimensionSelection, tabId } = message.data as {
+      const { songs, dimensionSelection } = message.data as {
         songs: Parameters<typeof classifySongs>[0]
         dimensionSelection: Parameters<typeof classifySongs>[2]
-        tabId?: number
       }
+      const tabId = sender?.tab?.id
       const settings = await getSettings()
       const sendProgress = (p: import('@/classifier').ClassifyProgress) => {
         if (tabId) {

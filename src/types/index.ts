@@ -36,8 +36,8 @@ export type ClassifyDimension = 'mood' | 'language' | 'region' | 'era' | 'genre'
 
 export type DimensionSelection = Partial<Record<ClassifyDimension, string[]>>
 
-export const DIMENSION_META: Record<ClassifyDimension, { label: string; categories: string[] }> = {
-  mood: { label: '情绪', categories: ['激情', '舒缓', '悲伤', '浪漫', '欢快'] },
+export const DIMENSION_META: Record<ClassifyDimension, { label: string; categories: string[]; description?: string }> = {
+  mood: { label: '情绪', categories: ['激情', '舒缓'], description: '激情：运动/开车适合听的 · 舒缓：睡觉/放松适合听的' },
   language: { label: '语种', categories: ['华语', '英语', '日语', '韩语', '粤语'] },
   region: { label: '地区', categories: ['华语', '欧美', '日本', '韩国'] },
   era: { label: '年代', categories: ['70s', '80s', '90s', '00s', '10s', '20s'] },

@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import type { CategoryGroup, ClassifyDimension } from '@/types'
 import { DIMENSION_META } from '@/types'
+
+const PREVIEW_COUNT = 5
 
 interface Props {
   grouped: CategoryGroup[]
@@ -20,6 +22,15 @@ const DIMENSION_LABELS: Record<string, string> = {
 export function ResultPreview({ grouped, onConfirm, onBack, onReassign }: Props) {
   const dimensions = [...new Set(grouped.map((g) => g.dimension))]
   const [editing, setEditing] = useState<{ songId: number; dim: ClassifyDimension } | null>(null)
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+
+  const toggleExpand = useCallback((key: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      next.has(key) ? next.delete(key) : next.add(key)
+      return next
+    })
+  }, [])
 
   const handleReassign = (songId: number, dim: ClassifyDimension, newCat: string) => {
     onReassign?.(songId, dim, newCat)
@@ -48,42 +59,53 @@ export function ResultPreview({ grouped, onConfirm, onBack, onReassign }: Props)
                     ({group.songs.length} 首)
                   </span>
                 </h4>
-                <div className="max-h-32 overflow-y-auto">
-                  {group.songs.slice(0, 10).map((s) => (
-                    <div key={s.songId} className="tn-song-item relative group/song">
-                      {editing?.songId === s.songId && editing?.dim === dim ? (
-                        <div className="flex items-center gap-1 py-0.5">
-                          <span className="text-xs text-gray-500 truncate max-w-[100px]">{s.songName}</span>
-                          <span className="text-xs text-gray-400">→</span>
-                          <select
-                            className="text-xs border border-gray-200 rounded px-1 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                            defaultValue=""
-                            onChange={(e) => handleReassign(s.songId, dim, e.target.value)}
-                            autoFocus
-                            onBlur={() => setEditing(null)}
-                          >
-                            <option value="" disabled>选择类目</option>
-                            {DIMENSION_META[dim].categories.map((cat) => (
-                              <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                          </select>
+                {(() => {
+                  const key = `${dim}-${group.category}`
+                  const isExpanded = expanded.has(key)
+                  const songs = isExpanded ? group.songs : group.songs.slice(0, PREVIEW_COUNT)
+                  const hasMore = group.songs.length > PREVIEW_COUNT
+                  return (
+                    <div className={isExpanded ? 'max-h-60 overflow-y-auto' : ''}>
+                      {songs.map((s) => (
+                        <div key={s.songId} className="tn-song-item relative group/song">
+                          {editing?.songId === s.songId && editing?.dim === dim ? (
+                            <div className="flex items-center gap-1 py-0.5">
+                              <span className="text-xs text-gray-500 truncate max-w-[100px]">{s.songName}</span>
+                              <span className="text-xs text-gray-400">→</span>
+                              <select
+                                className="text-xs border border-gray-200 rounded px-1 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                                defaultValue=""
+                                onChange={(e) => handleReassign(s.songId, dim, e.target.value)}
+                                autoFocus
+                                onBlur={() => setEditing(null)}
+                              >
+                                <option value="" disabled>选择类目</option>
+                                {DIMENSION_META[dim].categories.map((cat) => (
+                                  <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : (
+                            <span
+                              className={onReassign ? 'cursor-pointer hover:text-primary transition-colors' : ''}
+                              onClick={() => onReassign && setEditing({ songId: s.songId, dim })}
+                            >
+                              {s.songName} - {s.artists}
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        <span
-                          className={onReassign ? 'cursor-pointer hover:text-primary transition-colors' : ''}
-                          onClick={() => onReassign && setEditing({ songId: s.songId, dim })}
+                      ))}
+                      {hasMore && (
+                        <button
+                          className="text-xs text-primary hover:underline mt-1 pb-1"
+                          onClick={() => toggleExpand(key)}
                         >
-                          {s.songName} - {s.artists}
-                        </span>
+                          {isExpanded ? '收起' : `展开全部 ${group.songs.length} 首`}
+                        </button>
                       )}
                     </div>
-                  ))}
-                  {group.songs.length > 10 && (
-                    <p className="text-xs text-gray-400 mt-1">
-                      ...还有 {group.songs.length - 10} 首
-                    </p>
-                  )}
-                </div>
+                  )
+                })()}
               </div>
             ))}
         </div>

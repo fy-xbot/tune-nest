@@ -51,7 +51,7 @@ export function DimensionConfig({ selection, onChange, onConfirm, onBack }: Prop
         {ALL_DIMS.map((dim) => {
           const meta = DIMENSION_META[dim]
           const active = isDimActive(dim)
-          const cats = selection[dim] || []
+          const cats = (selection[dim] || []).filter((c) => meta.categories.includes(c))
 
           return (
             <div key={dim} className={`rounded-lg border transition-colors ${active ? 'border-primary/40 bg-red-50/30' : 'border-gray-200'}`}>
@@ -65,11 +65,14 @@ export function DimensionConfig({ selection, onChange, onConfirm, onBack }: Prop
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800">{meta.label}</p>
                   {!active && (
-                    <p className="text-xs text-gray-400">{meta.categories.join('、')}</p>
+                    <p className="text-xs text-gray-400">{meta.description || meta.categories.join('、')}</p>
+                  )}
+                  {active && meta.description && (
+                    <p className="text-xs text-gray-400 mt-0.5">{meta.description}</p>
                   )}
                 </div>
                 {active && (
-                  <span className="text-xs text-primary">{cats.length}/{meta.categories.length}</span>
+                  <span className="text-xs text-primary">{Math.min(cats.length, meta.categories.length)}/{meta.categories.length}</span>
                 )}
               </label>
 

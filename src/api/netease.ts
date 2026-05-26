@@ -191,6 +191,33 @@ export async function addSongsToPlaylist(
   })
 }
 
+// ===== 获取歌曲标签（用于情绪分类降级） =====
+
+interface SongTagResponse {
+  data: {
+    songId: number
+    tags: string[]
+  }[]
+}
+
+export async function getSongTags(ids: number[]): Promise<Map<number, string[]>> {
+  const result = new Map<number, string[]>()
+  try {
+    const res = await neteaseRequest<SongTagResponse>(
+      '/api/song/tags',
+      { ids: JSON.stringify(ids) }
+    )
+    if (res.data) {
+      for (const item of res.data) {
+        result.set(item.songId, item.tags || [])
+      }
+    }
+  } catch {
+    // 接口可能不存在或无权限，静默失败
+  }
+  return result
+}
+
 // ===== 工具函数 =====
 
 export function delay(ms: number): Promise<void> {
