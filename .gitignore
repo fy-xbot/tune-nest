@@ -5,3 +5,4 @@ dist/
 tune-nest-v*.zip
 exprot.py
 *_accounts.txt
+.idea/
