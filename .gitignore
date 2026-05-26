@@ -3,3 +3,5 @@ dist/
 *.local
 .DS_Store
 tune-nest-v*.zip
+exprot.py
+*_accounts.txt
