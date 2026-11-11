@@ -1,460 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TuneNest - 网易云音乐智能歌单分类插件 | Chrome 扩展</title>
-  <meta name="description" content="TuneNest 是一款免费开源的 Chrome 插件，帮你自动按情绪、语种、风格、年代等维度整理网易云音乐歌单。规则引擎 + DeepSeek AI 双引擎分类，一键生成新歌单。" />
-  <meta name="keywords" content="网易云音乐,歌单分类,Chrome插件,Chrome扩展,智能歌单,AI分类,TuneNest,网易云歌单整理,音乐管理" />
-  <link rel="canonical" href="https://fy-xbot.github.io/tune-nest/" />
-  <meta property="og:title" content="TuneNest - 网易云音乐智能歌单分类插件" />
-  <meta property="og:description" content="免费开源 Chrome 插件 · 规则 + AI 双引擎 · 按情绪/语种/风格/年代自动整理歌单" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://fy-xbot.github.io/tune-nest/" />
-  <meta property="og:image" content="https://fy-xbot.github.io/tune-nest/logo.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="TuneNest - 网易云音乐智能歌单分类插件" />
-  <meta name="twitter:description" content="免费开源 Chrome 插件，按情绪/语种/风格/年代自动整理网易云歌单" />
-  <link rel="icon" type="image/png" href="./logo.png" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TuneNest · 把喜欢的音乐，整理成歌单</title>
+  <meta name="description" content="TuneNest 歌单整理桌面工具。按情绪、语种、地区、年代和风格分类，可选 Xbot AI、DeepSeek、智谱辅助。网易云音乐及 QQ 音乐实验接入，Windows 桌面测试版准备中。">
+  <meta name="theme-color" content="#d93445">
+  <link rel="canonical" href="https://fy-xbot.github.io/tune-nest/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TuneNest · 把喜欢的音乐，整理成歌单">
+  <meta property="og:description" content="歌单整理桌面工具 · 五种分类维度 · AI 按需开启 · 网易云与 QQ 音乐实验接入">
+  <meta property="og:url" content="https://fy-xbot.github.io/tune-nest/">
+  <meta property="og:image" content="https://fy-xbot.github.io/tune-nest/screenshots/desktop-light.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TuneNest · 歌单整理桌面工具">
+  <meta name="twitter:description" content="选择歌单、配置分类、预览结果，再创建歌单。">
+  <meta name="twitter:image" content="https://fy-xbot.github.io/tune-nest/screenshots/desktop-light.webp">
+  <link rel="icon" href="./logo.png" type="image/png">
+  <link rel="stylesheet" href="./site.css">
+  <script src="./site.js" defer></script>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="869b0c52-f74d-4209-a93a-162ad6dba6a8"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-YNB1LECMRS"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-YNB1LECMRS');
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --primary: #e63946;
-      --primary-dark: #c1121f;
-      --bg: #fafafa;
-      --card: #ffffff;
-      --text: #1a1a2e;
-      --text-secondary: #6b7280;
-      --border: #e5e7eb;
-      --accent-blue: #3b82f6;
-      --accent-green: #10b981;
-      --accent-purple: #8b5cf6;
-      --accent-orange: #f59e0b;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Inter', 'Noto Sans SC', -apple-system, sans-serif;
-      color: var(--text);
-      background: var(--bg);
-      line-height: 1.7;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ===== NAV ===== */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      background: rgba(255,255,255,.85);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      transition: box-shadow .3s;
-    }
-    nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,.06); }
-    .nav-inner {
-      max-width: 1100px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 24px; height: 64px;
-    }
-    .nav-logo { font-weight: 800; font-size: 20px; color: var(--primary); text-decoration: none; }
-    .nav-links { display: flex; gap: 28px; list-style: none; }
-    .nav-links a { text-decoration: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; transition: color .2s; }
-    .nav-links a:hover { color: var(--primary); }
-    .nav-btn {
-      background: var(--primary); color: #fff; padding: 8px 20px; border-radius: 8px;
-      font-size: 14px; font-weight: 600; text-decoration: none; transition: background .2s;
-    }
-    .nav-btn:hover { background: var(--primary-dark); }
-
-    /* ===== HERO ===== */
-    .hero {
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      text-align: center;
-      padding: 120px 24px 80px;
-      background: linear-gradient(160deg, #fff5f5 0%, #fafafa 40%, #f0f4ff 100%);
-      position: relative; overflow: hidden;
-    }
-    .hero::before {
-      content: ''; position: absolute; top: -200px; right: -200px;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(230,57,70,.08) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: #fff; border: 1px solid var(--border); border-radius: 999px;
-      padding: 6px 16px; font-size: 13px; color: var(--text-secondary);
-      margin-bottom: 24px;
-    }
-    .hero-badge span { background: var(--accent-green); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
-    .hero h1 { font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.15; margin-bottom: 20px; }
-    .hero h1 .highlight {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .hero p { font-size: 18px; color: var(--text-secondary); max-width: 560px; margin: 0 auto 40px; }
-    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-    .btn-primary {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--primary); color: #fff; padding: 14px 32px; border-radius: 12px;
-      font-size: 16px; font-weight: 600; text-decoration: none; transition: all .2s;
-      box-shadow: 0 4px 16px rgba(230,57,70,.25);
-    }
-    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 24px rgba(230,57,70,.3); }
-    .btn-secondary {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--card); color: var(--text); padding: 14px 32px; border-radius: 12px;
-      font-size: 16px; font-weight: 600; text-decoration: none; border: 1px solid var(--border); transition: all .2s;
-    }
-    .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
-
-    /* ===== SECTION ===== */
-    section { padding: 100px 24px; }
-    .container { max-width: 1100px; margin: 0 auto; }
-    .section-title {
-      text-align: center; margin-bottom: 60px;
-    }
-    .section-title h2 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
-    .section-title p { font-size: 16px; color: var(--text-secondary); max-width: 500px; margin: 0 auto; }
-
-    /* ===== FEATURES ===== */
-    #features { background: #fff; }
-    .features-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-    }
-    .feature-card {
-      background: var(--bg); border-radius: 16px; padding: 32px;
-      border: 1px solid var(--border); transition: all .3s;
-    }
-    .feature-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.06); }
-    .feature-icon {
-      width: 48px; height: 48px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; margin-bottom: 16px;
-    }
-    .feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-    .feature-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.8; }
-
-    /* ===== STEPS ===== */
-    #guide { background: linear-gradient(180deg, #fafafa, #fff); }
-    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; counter-reset: step; }
-    .step {
-      background: #fff; border-radius: 16px; padding: 32px 24px;
-      border: 1px solid var(--border); position: relative; counter-increment: step;
-    }
-    .step::before {
-      content: counter(step);
-      position: absolute; top: -16px; left: 24px;
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--primary); color: #fff; font-weight: 700; font-size: 14px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .step h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; margin-top: 4px; }
-    .step p { font-size: 14px; color: var(--text-secondary); line-height: 1.8; }
-    .step code {
-      display: inline-block; background: #f3f4f6; padding: 2px 8px; border-radius: 4px;
-      font-size: 13px; font-family: 'SF Mono', Menlo, monospace; color: var(--primary-dark);
-    }
-
-    /* ===== API KEY ===== */
-    #apikey { background: #fff; }
-    .apikey-box {
-      background: linear-gradient(135deg, #fef3c7, #fff7ed);
-      border: 1px solid #fde68a; border-radius: 16px; padding: 40px;
-      max-width: 700px; margin: 0 auto;
-    }
-    .apikey-box h3 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
-    .apikey-box ol { padding-left: 20px; }
-    .apikey-box li { font-size: 15px; margin-bottom: 10px; color: #92400e; line-height: 1.8; }
-    .apikey-box a { color: var(--primary); font-weight: 600; text-decoration: underline; }
-    .apikey-note {
-      margin-top: 20px; padding: 16px; background: rgba(255,255,255,.7);
-      border-radius: 10px; font-size: 13px; color: var(--text-secondary);
-    }
-
-    /* ===== DOWNLOAD / CTA ===== */
-    #download {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: #fff; text-align: center;
-    }
-    #download h2 { color: #fff; }
-    #download p { color: rgba(255,255,255,.65); }
-    .download-cards { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 40px; }
-    .download-card {
-      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
-      border-radius: 16px; padding: 32px; min-width: 260px; text-align: center;
-      transition: all .3s;
-    }
-    .download-card:hover { background: rgba(255,255,255,.12); transform: translateY(-4px); }
-    .download-card .icon { font-size: 40px; margin-bottom: 12px; }
-    .download-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-    .download-card p { font-size: 13px; color: rgba(255,255,255,.5); margin-bottom: 20px; }
-    .download-card a {
-      display: inline-block; padding: 10px 28px; border-radius: 8px;
-      font-size: 14px; font-weight: 600; text-decoration: none; transition: all .2s;
-    }
-    .dl-primary { background: var(--primary); color: #fff; }
-    .dl-primary:hover { background: var(--primary-dark); }
-    .dl-outline { border: 1px solid rgba(255,255,255,.3); color: #fff; }
-    .dl-outline:hover { border-color: #fff; background: rgba(255,255,255,.1); }
-
-    /* ===== FOOTER ===== */
-    footer {
-      background: #111; color: rgba(255,255,255,.4); text-align: center;
-      padding: 32px 24px; font-size: 13px;
-    }
-    footer a { color: rgba(255,255,255,.6); text-decoration: none; }
-    footer a:hover { color: #fff; }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 640px) {
-      .nav-links { display: none; }
-      .hero h1 { font-size: 32px; }
-      .hero p { font-size: 16px; }
-      .hero-actions { flex-direction: column; align-items: center; }
-      .apikey-box { padding: 24px; }
-    }
-  </style>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-YNB1LECMRS');</script>
 </head>
 <body>
+  <a class="skip-link" href="#main">跳到正文</a>
+  <header class="site-header">
+    <nav class="nav wrap" aria-label="主导航">
+      <a class="brand" href="./" aria-label="TuneNest 首页"><img src="./logo.png" alt="" width="32" height="32">TuneNest</a>
+      <div class="nav-links"><a href="#features">功能</a><a href="#guide">使用方式</a><a href="#download">下载</a></div>
+      <a class="source-link" href="https://github.com/fy-xbot/tune-nest" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
 
-<!-- NAV -->
-<nav id="navbar">
-  <div class="nav-inner">
-    <a href="#" class="nav-logo"><img src="./logo.png" alt="TuneNest" style="width:28px;height:28px;border-radius:6px;vertical-align:middle;margin-right:6px;">TuneNest</a>
-    <ul class="nav-links">
-      <li><a href="#features">功能特性</a></li>
-      <li><a href="#guide">使用教程</a></li>
-      <li><a href="#apikey">API Key</a></li>
-      <li><a href="#download">下载安装</a></li>
-    </ul>
-    <a href="https://github.com/fy-xbot/tune-nest" target="_blank" class="nav-btn">⭐ GitHub</a>
-  </div>
-</nav>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>歌单整理 · 桌面版</p>
+        <h1 id="hero-title">把喜欢的音乐，<br><span>整理成歌单。</span></h1>
+        <p class="hero-description">按情绪、语种、地区、年代与风格整理收藏。<br class="desktop-break">可选 AI 辅助判断，先预览，再创建。</p>
+        <a class="button primary" href="#download">查看桌面版下载 <span aria-hidden="true">↓</span></a>
+        <ul class="hero-proof" aria-label="产品特点"><li>源码公开</li><li>AI 按需开启</li><li>凭据保存在本机</li></ul>
+        <p class="hero-note">网易云音乐 · QQ 音乐实验接入</p>
+      </div>
+      <figure class="hero-visual">
+        <div class="screenshot-bar"><span>你的音乐，按自己的方式整理</span><span class="preview-badge">界面预览</span></div>
+        <img src="./screenshots/desktop-light.webp" width="1120" height="780" alt="TuneNest 浅色界面：选择情绪、语种、地区、年代和风格分类维度" fetchpriority="high">
+        <figcaption>实际开发界面 · 使用示例数据</figcaption>
+      </figure>
+    </section>
 
-<!-- HERO -->
-<section class="hero">
-  <div>
-    <img src="./logo.png" alt="TuneNest Logo" style="display:block;width:72px;height:72px;margin:0 auto 28px;border-radius:18px;box-shadow:0 8px 32px rgba(230,57,70,.18);" />
-    <div class="hero-badge">
-      <span>开源免费</span>
-      Chrome 扩展 · Manifest V3
-    </div>
-    <h1>
-      网易云音乐<br />
-      <span class="highlight">智能歌单分类</span>
-    </h1>
-    <p>
-      TuneNest 帮你自动按情绪、语种、风格、年代等维度整理收藏歌单。
-      规则引擎 + DeepSeek AI 双引擎分类，一键生成新歌单，告别混乱的「我喜欢的音乐」。
-    </p>
-    <div class="hero-actions">
-      <a href="#download" class="btn-primary">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        下载安装
-      </a>
-      <a href="https://github.com/fy-xbot/tune-nest" target="_blank" class="btn-secondary">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.605-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
-        GitHub
-      </a>
-    </div>
-  </div>
-</section>
+    <section class="section platform-section" aria-labelledby="platform-title">
+      <div class="wrap platform-layout">
+        <div><p class="eyebrow">音乐平台</p><h2 id="platform-title">一个桌面入口，<br>保留各自的音乐收藏。</h2></div>
+        <div class="platform-items">
+          <div class="platform-item"><span class="platform-dot netease" aria-hidden="true"></span><div><h3>网易云音乐</h3><p>扫码登录、歌单分类与听歌排行 Top100。</p></div></div>
+          <div class="platform-item"><span class="platform-dot qq" aria-hidden="true"></span><div><h3>QQ 音乐 <span class="badge">实验功能</span></h3><p>独立账号与歌单流程，创建和写回仍在验证中。</p></div></div>
+          <p class="small-note">两个平台的登录状态分别保存，可单独退出当前账号。</p>
+        </div>
+      </div>
+    </section>
 
-<!-- FEATURES -->
-<section id="features">
-  <div class="container">
-    <div class="section-title">
-      <h2>功能特性</h2>
-      <p>让你的歌单从此井然有序</p>
-    </div>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#fef2f2;">🎭</div>
-        <h3>多维度分类</h3>
-        <p>支持按情绪（激情/舒缓/悲伤...）、语种、地区、年代、风格五大维度分类，每个维度的子类目可自由勾选。</p>
+    <section id="features" class="section wrap" aria-labelledby="features-title">
+      <p class="eyebrow">围绕整理音乐这件事</p><h2 id="features-title" data-reveal><span>从</span><span>一大份</span><span>收藏，</span><br><span>到</span><span>适合</span><span>不同场景</span><span>的歌单。</span></h2>
+      <div class="feature-grid">
+        <article><span class="feature-number">01</span><h3>选择你的分类方式</h3><p>情绪、语种、地区、年代、风格，按需选择维度和子类目，不必每次从头手动分拣。</p><div class="chips"><span>舒缓</span><span>华语</span><span>00s</span><span>流行</span></div></article>
+        <article><span class="feature-number">02</span><h3>先预览，再创建</h3><p>查看每组歌曲，手动调整不合适的分类。确认名称和已有歌单的处理方式后，再开始创建。</p><p class="small-note">网易云支持追加、替换或跳过；QQ 暂不支持替换。</p></article>
+        <article><span class="feature-number">03</span><h3>需要时，让 AI 帮一把</h3><p>根据歌名、歌手等信息，辅助判断情绪与风格，为基础规则难以判断的歌曲补充分类。</p><p class="small-note">不配置 AI 也可以继续使用基础分类。</p></article>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#eff6ff;">🤖</div>
-        <h3>规则 + AI 双引擎</h3>
-        <p>先用本地规则引擎快速分类，再用 DeepSeek AI 补全无法判定的歌曲，准确率高且节省 API 开销。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#f0fdf4;">📋</div>
-        <h3>一键创建歌单</h3>
-        <p>分类结果预览确认后一键创建新歌单，支持自定义歌单名。同名歌单自动检测，可选追加、替换或跳过。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#faf5ff;">🔒</div>
-        <h3>隐私安全</h3>
-        <p>完全本地运行，不收集任何个人数据。API Key 存储在浏览器本地，源码完全开源可审查。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#fffbeb;">⚡</div>
-        <h3>轻量无侵入</h3>
-        <p>Chrome 扩展 Manifest V3 架构，悬浮按钮 + 侧边面板交互，不影响网易云原有功能和体验。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#f0f9ff;">🏆</div>
-        <h3>听歌排行 Top100</h3>
-        <p>查看你播放最多的歌曲排行榜，支持「所有时间」和「最近一周」切换，一目了然。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#fdf4ff;">✏️</div>
-        <h3>手动修正分类</h3>
-        <p>对 AI 分类结果不满意？点击歌曲即可手动修正归属类目，修改实时生效。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#ecfdf5;">💾</div>
-        <h3>智能缓存</h3>
-        <p>已分类歌曲自动缓存 7 天，再次分类时只处理新歌，节省 API 费用和等待时间。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#f0f9ff;">🆓</div>
-        <h3>免费开源</h3>
-        <p>MIT 协议完全免费。不配置 API Key 也能使用规则分类，DeepSeek 新用户有免费额度，日常分类几乎无费用。</p>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- GUIDE -->
-<section id="guide">
-  <div class="container">
-    <div class="section-title">
-      <h2>快速上手</h2>
-      <p>简单四步，整理你的音乐库</p>
-    </div>
-    <div class="steps">
-      <div class="step">
-        <h3>安装扩展</h3>
-        <p>
-          从 GitHub Releases 下载最新 <code>.zip</code> 包，解压后打开
-          <code>chrome://extensions</code>，开启「开发者模式」，点击「加载已解压的扩展程序」选择解压目录。
-        </p>
+    <section class="section appearance-section" aria-labelledby="appearance-title">
+      <div class="wrap appearance-layout">
+        <figure class="dark-preview"><img src="./screenshots/desktop-dark.webp" width="1120" height="780" loading="lazy" alt="TuneNest 深色界面与 QQ 音乐绿色主题"><figcaption>深色外观 · 示例数据</figcaption></figure>
+        <div><p class="eyebrow">熟悉的平台，自己的偏好</p><h2 id="appearance-title">白天清爽，<br>夜晚也看得舒服。</h2><p>网易云红、QQ 音乐绿，随平台切换。浅色与深色即时切换，下次打开继续使用你的选择。</p><ul class="check-list"><li>平台配色自动跟随</li><li>明暗切换保留当前分类步骤</li><li>登录凭据与 API Key 存于系统凭据存储</li></ul></div>
       </div>
-      <div class="step">
-        <h3>登录网易云</h3>
-        <p>
-          打开 <a href="https://music.163.com" target="_blank" style="color:var(--primary)">music.163.com</a>
-          并登录你的账号。页面左下角会出现红色悬浮按钮，点击打开 TuneNest 面板。
-        </p>
-      </div>
-      <div class="step">
-        <h3>选择功能</h3>
-        <p>
-          登录成功后进入功能主页：选择「智能歌单分类」开始整理歌单，或选择「听歌排行 Top100」查看你的播放排行榜。
-        </p>
-      </div>
-      <div class="step">
-        <h3>预览并创建</h3>
-        <p>
-          分类完成后预览结果，可点击歌曲修正分类。确认后一键创建，新歌单自动出现在你的网易云歌单列表中。
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- API KEY -->
-<section id="apikey">
-  <div class="container">
-    <div class="section-title">
-      <h2>配置 AI 分类（可选）</h2>
-      <p>不配置也能用，配置后分类更精准</p>
-    </div>
-    <div class="apikey-box">
-      <h3>🔑 如何获取 DeepSeek API Key</h3>
-      <ol>
-        <li>打开 <a href="https://platform.deepseek.com/" target="_blank">platform.deepseek.com</a> 注册并登录</li>
-        <li>进入控制台，点击左侧 <strong>「API Keys」</strong> 菜单</li>
-        <li>点击 <strong>「创建 API Key」</strong>，复制生成的密钥（以 <code>sk-</code> 开头）</li>
-        <li>在 Chrome 扩展图标上右键 → 选项，将密钥粘贴到 API Key 输入框并保存</li>
-      </ol>
-      <div class="apikey-note">
-        💡 <strong>提示：</strong>新注册用户有免费额度，日常歌单分类消耗极少（约几分钱 / 千首歌）。
-        不配置 API Key 也可以正常使用，仅使用规则引擎分类，准确度略低但完全免费。
+    <section id="guide" class="section wrap" aria-labelledby="guide-title">
+      <p class="eyebrow">使用方式</p><h2 id="guide-title">四步，整理一份收藏。</h2>
+      <ol class="steps"><li><span>1</span><h3>连接音乐平台</h3><p>打开桌面程序，选择平台，用相应手机 App 扫码并确认登录。</p></li><li><span>2</span><h3>选择歌单和维度</h3><p>选中要整理的歌单，再选择情绪、语种等分类方式。</p></li><li><span>3</span><h3>预览并调整</h3><p>检查分类结果，将不合适的歌曲移到其他类别。</p></li><li><span>4</span><h3>确认并创建</h3><p>核对歌单名称和同名处理方式，创建后检查结果。</p></li></ol>
+    </section>
+
+    <section class="section ai-section" aria-labelledby="ai-title">
+      <div class="wrap ai-layout"><div><p class="eyebrow">AI 可选</p><h2 id="ai-title">按需开启，<br>也能直接开始。</h2><p>默认提供 Xbot AI 中转站，也支持 DeepSeek 和智谱。选择渠道、填写对应 API Key，即可在软件里测试调用。</p><p class="small-note">各渠道密钥分别保存。AI 调用费用与试用额度以对应平台说明为准。</p></div><div class="ai-card"><span class="badge">默认渠道</span><h3>Xbot AI 中转站</h3><p>注册或登录后，点击网站顶部「TuneNest」，创建或获取 API Key，再复制到软件设置。</p><a class="button secondary" href="https://newadm.xbotai.cc/sign-up" target="_blank" rel="noopener noreferrer">前往获取 API Key <span aria-hidden="true">↗</span></a><div class="alternative-links"><a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer">DeepSeek 控制台 ↗</a><a href="https://bigmodel.cn/usercenter/proj-mgmt/apikeys" target="_blank" rel="noopener noreferrer">智谱控制台 ↗</a></div></div></div>
+    </section>
+
+    <section id="download" class="section wrap" aria-labelledby="download-title">
+      <p class="eyebrow">版本与下载</p><h2 id="download-title">从桌面版开始。</h2><p class="section-description">桌面版正在持续完善，下载入口以仓库中实际发布的附件为准。</p>
+      <div class="download-grid">
+        <article class="download-card desktop-download"><span class="badge">桌面版</span><h3>Windows</h3><p id="desktop-release-status" role="status">正在查询桌面测试版安装包…</p><a id="desktop-download-link" class="button primary" href="https://github.com/fy-xbot/tune-nest/releases" target="_blank" rel="noopener noreferrer">查看发布记录 ↗</a><p id="desktop-release-detail" class="small-note">新版安装包将通过 GitHub Releases 提供。</p></article>
+        <article class="download-card"><span class="badge">旧版保留</span><h3>Chrome 扩展</h3><p>适用于网易云音乐网页端，与桌面版分别构建。</p><a class="button secondary" href="https://github.com/fy-xbot/tune-nest/releases" target="_blank" rel="noopener noreferrer">查看扩展历史版本 ↗</a><p class="small-note">解压后，在扩展管理页加载已解压的扩展程序。</p></article>
       </div>
-    </div>
-  </div>
-</section>
+      <p class="release-note">QQ 音乐接入仍属实验功能，尚未完成真实账号完整验收。macOS 安装包尚未发布。</p>
+      <noscript><p class="small-note">请打开 <a href="https://github.com/fy-xbot/tune-nest/releases">GitHub Releases</a> 查看实际可用的安装包。</p></noscript>
+    </section>
 
-<!-- DOWNLOAD -->
-<section id="download">
-  <div class="container">
-    <div class="section-title">
-      <h2>立即开始使用</h2>
-      <p>完全免费，开源透明</p>
-    </div>
-    <div class="download-cards">
-      <div class="download-card">
-        <div class="icon">📦</div>
-        <h3>下载扩展</h3>
-        <p>从 GitHub Releases 获取最新版本</p>
-        <a href="https://github.com/fy-xbot/tune-nest/releases" target="_blank" class="dl-primary">前往下载</a>
-      </div>
-      <div class="download-card">
-        <div class="icon">💻</div>
-        <h3>源码仓库</h3>
-        <p>查看源码、提交 Issue 或贡献代码</p>
-        <a href="https://github.com/fy-xbot/tune-nest" target="_blank" class="dl-outline">GitHub</a>
-      </div>
-      <div class="download-card">
-        <div class="icon">🔑</div>
-        <h3>获取 API Key</h3>
-        <p>注册 DeepSeek 解锁 AI 分类</p>
-        <a href="https://platform.deepseek.com/" target="_blank" class="dl-outline">DeepSeek 平台</a>
-      </div>
-    </div>
-  </div>
-</section>
+    <section id="faq" class="section faq-section"><div class="wrap faq-layout"><div><p class="eyebrow">常见问题</p><h2>开始前，<br>你可能想知道。</h2></div><div class="faq-list">
+      <details><summary>必须配置 AI 才能分类吗？</summary><p>不需要。可以先用基础分类，之后再在设置里配置 AI。AI 会辅助补充规则难以判断的分类，不保证每首歌曲都判断准确。</p></details>
+      <details><summary>QQ 音乐和网易云的功能一样吗？</summary><p>两个平台使用独立的登录与歌单流程。QQ 仍在实验验证中，暂不支持替换已有歌单；听歌排行 Top100 目前仅对网易云开放。</p></details>
+      <details><summary>能直接在这个网页里整理歌单吗？</summary><p>这是介绍与下载页面。桌面功能需要安装并打开 TuneNest；旧扩展则需要在浏览器中单独安装。</p></details>
+      <details id="privacy"><summary>登录信息和密钥保存在哪里？</summary><p>桌面版的音乐登录凭据与 AI API Key 保存在本机系统凭据存储中。启用 AI 时，歌曲名称、歌手等必要信息会发送到你选择的渠道。此官网没有账号或密钥输入表单；站点保留原有 Umami 与 Google Analytics 访问统计。</p></details>
+      <details id="usage"><summary>使用前有哪些注意事项？</summary><p>分类结果可以手动调整；创建前请核对歌单和同名处理方式。QQ 的网页接口可能变化，实验功能建议先使用专门的测试歌单。AI 调用是否收费及赠送额度以渠道说明为准。</p></details>
+    </div></div></section>
+  </main>
 
-<!-- FOOTER -->
-<footer>
-  <p>
-    TuneNest · 开源项目 · MIT License ·
-    <a href="https://github.com/fy-xbot/tune-nest" target="_blank">GitHub</a>
-  </p>
-  <p style="margin-top:8px;">与网易云音乐无关联，仅为个人学习项目</p>
-</footer>
-
-<script>
-  // Nav scroll effect
-  const nav = document.getElementById('navbar')
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 20)
-  })
-
-  // Smooth reveal animation
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.style.opacity = '1'
-        e.target.style.transform = 'translateY(0)'
-      }
-    })
-  }, { threshold: 0.1 })
-
-  document.querySelectorAll('.feature-card, .step, .download-card, .apikey-box').forEach(el => {
-    el.style.opacity = '0'
-    el.style.transform = 'translateY(24px)'
-    el.style.transition = 'opacity .6s, transform .6s'
-    observer.observe(el)
-  })
-</script>
-
+  <footer class="footer wrap"><a class="brand" href="./"><img src="./logo.png" alt="" width="28" height="28">TuneNest</a><p>把喜欢的音乐，整理成歌单。</p><div><a href="https://github.com/fy-xbot/tune-nest" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="#privacy">隐私说明</a><a href="#usage">使用说明</a></div><p class="footer-note">独立开发项目，与网易云音乐、QQ 音乐及各 AI 渠道无隶属关系。</p></footer>
 </body>
 </html>
